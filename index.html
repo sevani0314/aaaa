@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+
+<div id="app">
+    <div class="container">
+        <div>
+            <input v-model="inputValue" :disabled="isEdit || isShowInsert">&nbsp;
+            <input type="button" class="btn btn-primary btn-sm" @click="handleInsert(emp.length)" value="新增" :disabled="isShowInsert">
+        </div><br>
+        <!--表格-->
+        <table class="table table-hover table-light" style="text-align: center;">
+            <thead>
+                <tr>
+                    <th>序號</th>
+                    <th>電腦編號</th>
+                    <th>姓名</th>
+                    <th>分機</th>
+                    <th>功能</th>
+                </tr>
+            </thead>
+            <tbody v-for="(emp,index) in searchEmpno">
+                <tr v-if="emp.empNo.trim().length==0">
+                    <th scope="row">{{index+1}}</th>
+                    <td><input type="text" class="form-control" v-model="box[index].empNo"></td>
+                    <td><input type="text" class="form-control" v-model="box[index].name"></td>
+                    <td><input type="text" class="form-control" v-model="box[index].Ext"></td>
+                    <td>
+                        <button class="btn btn-warning" @click="saveInsertData(index)">新增</button>&nbsp;
+                        <button class="btn btn-danger" @click="handleCancel">取消</button>   
+                    </td>  
+                </tr>
+                <tr v-else>
+                    <th scope="row">{{index+1}}</th>
+                    <td>{{emp.empNo}}</td>
+                    <td>{{emp.name}}</td>
+                    <td>{{emp.Ext}}</td>
+                    <td>
+                        <button class="btn btn-warning" @click="handleEdit(index)" :disabled="isShoww || isShowInsert">編輯</button> &nbsp;
+                        <button class="btn btn-danger"  data-bs-toggle="modal" data-bs-target="#exampleModal" :disabled="isEdit || isShowInsert">刪除</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <!--表格
+        <div v-show="isEdit">
+            <Employee-Edit :box="box" @do-save="saveData(box[0].id)" @do-close-edit="closeEdit"></Employee-Edit>
+        </div>-->
+
+
+        <div class="editpage" v-show="isShoww":box="box" @do-save="saveData(box[0].id)" @do-close-edit="closeEdit"> 
+         <span>資料修改</span>
+            <div class="border pt-2" style="padding:10px;">
+                <div class="row mb-2">
+                    <label class="col-sm-2 col-form-label">電腦編號</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="box[0].empNo" disabled>
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <label class="col-sm-2 col-form-label">姓名</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="box[0].name">
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <label class="col-sm-2 col-form-label">分機</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" v-model="box[0].tel">
+                    </div>
+                </div>
+                <div class="mb-2 text-end">                     
+                    <button type="button" class="btn btn-success" @click="saveData">儲存</button>&nbsp;
+                    <button type="button" class="btn btn-danger" @click="closeEdit">取消</button>
+                </div>
+    </div>
+</div>
+</div>
+</div>
+
+ <script type="module">
+     import {createApp, ref, reactive,computed} from './vue.js'
+     
+    const app = {       
+
+        setup() {
+              const emp=reactive([
+              //default emp data  
+              {
+                empNo:'FG4481',
+                name:'錫里安墨菲',
+                Ext:'1098'
+              },
+              {
+                empNo:'FG4483',
+                name:'史嘉蕾喬韓森',
+                Ext:'1299'
+              },
+              {
+                empNo:'FG4486',
+                name:'達米亞諾大衛',
+                Ext:'1678'
+              }
+            ])  
+
+            const inputValue = ref('')
+                
+            const searchEmpno = computed(()=>{
+                    return emp.filter((m)=>{
+                        return(
+                            m.empNo.toLowerCase().indexOf(inputValue.value.toLowerCase()) != -1
+                        )
+                    })
+            })
+
+            const Delete = (id) => {
+                    emp.splice(id,1)                 
+            }
+
+              
+            const box = reactive([{
+                    empNo:'',
+                    name:'',
+                    tel:'',
+            }])
+
+            const isShoww=ref(false)
+
+            const isEdit = ref(false)
+
+            const handleEdit = (id) => { 
+                    isEdit.value = true
+                    isShoww.value = true
+                    isShowInsert.value = false
+                    box.length = 0 
+                    const editedUser = 
+                    {
+                        id,
+                        empNo:emp[id].empNo,
+                        name:emp[id].name,
+                        tel:emp[id].tel
+                    }      
+                    box.push(editedUser)
+                }
+
+            const closeEdit = () => {
+                    isEdit.value = false
+                }
+
+                
+            const saveData = (id) => {
+                        delete box[0].id
+                        emp[id] = box[0]
+                        isEdit.value = false
+                }   
+
+                
+            const isShowInsert = ref(false)
+
+            const handleInsert = (item) => {
+                    isEdit.value = false
+                    
+                    box[item] = {
+                        empNo : '',
+                        name: '',
+                        tel: ''
+                    }
+                        
+                    const data = {
+                        empNo : '',
+                        name: '',
+                        tel: ''
+                    }   
+                         
+                    emp.push(data)
+                    isShowInsert.value = true
+                    console.log(box)
+                }
+
+            const handleCancel = () => {
+                    emp.pop()
+                    isShowInsert.value = false
+                }
+
+                //save insert data
+            const saveInsertData = (id) => {
+                    console.log(id)
+                    if(box[id].empNo.replaceAll(' ','')<=0){
+                        alert('請輸入電腦編號')
+                        return
+                    }
+                    isShowInsert.value = false
+                    delete box[0].id
+                    emp[id] = box[id]
+            }   
+        return {
+            emp,
+            inputValue,
+            searchEmpno,
+            Delete,
+            handleEdit,
+            handleInsert,
+            box,
+            isEdit,
+            isShowInsert,
+            saveData,
+            handleCancel ,
+            saveInsertData,
+            closeEdit
+
+
+
+        }
+        },
+        
+        
+    }
+export default{
+   props:{
+    box:Array
+   },
+   emits:['doSave','doCloseEdit'],
+   setup(props,{emit}) {
+    const saveData = () => emit('doSave')
+    const closeEdit = () => emit('doCloseEdit')
+    return{
+        box:props.box,
+        saveData,
+        closeEdit
+    }
+   },   
+}
+    createApp(app).mount('#app')
+</script>
+</body>
+</html>
